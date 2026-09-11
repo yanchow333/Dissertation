@@ -108,6 +108,5 @@ Script `01_data_import.r` checks that the required files are present and that th
 
 If the required files are already available on your computer, you do not need to move or duplicate them. The `raw_path()` function in `00_environment_setup.r` can be edited to point to the existing `data/raw/` folder. No other scripts need to be changed. 
 
-Files should be named exactly the same. 
 
 
