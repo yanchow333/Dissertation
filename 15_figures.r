@@ -1,5 +1,6 @@
 # 15 Figures
 
+
 source("00_environment_setup.r")
 
 crosswalk <- read_derived("03_crosswalk")
@@ -111,100 +112,6 @@ legend_key <- function(values, ncol = 2) {
     theme_void()
 }
 
-# Figure 1, methodology flowchart
-
-flow_steps <- tribble(
-  ~column, ~label,                        ~x,    ~w,
-  1L,      "Census import",               1.30,  2.60,
-  2L,      "Index estimation",            4.10,  2.60,
-  3L,      "Inference and decomposition", 7.00,  2.90,
-  4L,      "Local clustering",            10.30, 2.90,
-  5L,      "Classification",              13.60, 2.90
-) %>%
-  mutate(y = 7.7, type = "step")
-
-flow_items <- tribble(
-  ~column, ~label,                       ~section,
-  1L,      "Terminal category test",     "3.2",
-  1L,      "Group crosswalk",            "3.2",
-  1L,      "Zone graph harmonisation",   "3.3",
-  1L,      "Conservation checks",        "3.2",
-  2L,      "Index of Dissimilarity",     "3.4",
-  2L,      "Index of Isolation",         "3.4",
-  2L,      "Mutual information and H",   "3.4",
-  2L,      "Within district D",          "3.4",
-  2L,      "Bootstrap intervals",        "3.4",
-  3L,      "Size conditional null",      "3.5",
-  3L,      "Scale decomposition",        "3.6",
-  3L,      "Shapley decomposition",      "3.7",
-  3L,      "Redistribution index",       "3.7",
-  4L,      "Getis and Ord statistic",    "3.8",
-  4L,      "Queen contiguity weights",   "3.8",
-  4L,      "False discovery correction", "3.8",
-  4L,      "Pairing sensitivity",        "3.8",
-  4L,      "Arrival cohorts",            "3.9",
-  4L,      "Generational split",         "3.9",
-  5L,      "Six zone indicators",        "3.10",
-  5L,      "Hierarchical rules",         "3.10",
-  5L,      "Change clustering",          "3.10",
-  5L,      "Threshold sensitivity",      "3.10",
-  5L,      "Year of arrival validation", "3.10"
-) %>%
-  group_by(column) %>%
-  mutate(y = 6.55 - 0.70 * (row_number() - 1)) %>%
-  ungroup() %>%
-  left_join(select(flow_steps, column, x, w), by = "column") %>%
-  mutate(type = "item")
-
-flow_banners <- tribble(
-  ~label,                                     ~x,    ~y,  ~w,
-  "1. Data preparation",                      1.30,  9.9, 3.00,
-  "2. Analysis",                              9.15,  9.9, 12.10,
-  "2.1 Separation and its change (RQ1)",      5.35,  9.0, 6.30,
-  "2.2 Clustering and classification (RQ2)",  12.00, 9.0, 6.30
-) %>%
-  mutate(type = c("banner", "banner", "subbanner", "subbanner"))
-
-flow_outputs <- tribble(
-  ~label,           ~x,    ~w,
-  "Tables 1 and 2", 1.30,  2.60,
-  "Tables 3 to 5",  5.55,  5.50,
-  "Table 6",        10.30, 2.90,
-  "Tables 7 and 8", 13.60, 2.90
-) %>%
-  mutate(y = 1.55, type = "output")
-
-flow_boxes <- bind_rows(flow_banners, select(flow_steps, label, x, y, w, type), select(flow_items, label, x, y, w, type), flow_outputs) %>%
-  mutate(h = if_else(type == "item", 0.56, 0.66))
-
-# the five stacks end at a common height so their arrows meet the outputs evenly
-stack_bottoms <- flow_items %>%
-  group_by(column) %>%
-  summarise(bottom = min(y) - 0.28, .groups = "drop") %>%
-  left_join(select(flow_steps, column, x), by = "column")
-
-flow_arrows <- bind_rows(
-  flow_steps %>% transmute(xend = lead(x) - lead(w) / 2, x = x + w / 2, y = 7.7, yend = 7.7) %>% filter(!is.na(xend)),
-  stack_bottoms %>% transmute(x, xend = x, y = 7.7 - 0.33, yend = bottom),
-  stack_bottoms %>% transmute(x, xend = x, y = bottom, yend = 1.55 + 0.33)
-)
-
-f1 <- ggplot(flow_boxes, aes(x, y)) +
-  geom_segment(data = flow_arrows, aes(x = x, xend = xend, y = y, yend = yend), colour = border, linewidth = 0.45,
-               arrow = arrow(length = unit(4, "pt"), type = "closed"), inherit.aes = FALSE) +
-  geom_tile(aes(width = w, height = h, fill = type), colour = NA) +
-  geom_text(aes(label = str_wrap(label, 22), colour = type), size = 2.1, lineheight = 0.95) +
-  geom_text(data = flow_items, aes(x = x + w / 2 - 0.10, y = y - 0.23, label = section),
-            size = 2.4, colour = rule, fontface = "bold", hjust = 1) +
-  scale_fill_manual(values = c(banner = "#2F6F4E", subbanner = "#DDEBDD", step = "#5B3A78", item = "#EEE6F2", output = "#C95C83"),
-                    guide = "none") +
-  scale_colour_manual(values = c(banner = paper, subbanner = ink, step = paper, item = ink, output = paper), guide = "none") +
-  scale_x_continuous(limits = c(-0.2, 15.3), expand = expansion(mult = 0.01)) +
-  scale_y_continuous(limits = c(1.0, 10.4), expand = expansion(add = 0.2)) +
-  labs(title = "Analytical workflow") +
-  theme(panel.grid.major = element_blank(), axis.text = element_blank(), axis.title = element_blank())
-
-save_figure(f1, "fig_1_methodology_flowchart", height = 230, width = 210)
 
 # Figure 2, dissimilarity 2011 against 2021
 
