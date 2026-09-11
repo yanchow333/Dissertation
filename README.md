@@ -3,6 +3,8 @@ Ethnic Group, Country of Birth and Neighbourhood Settlement, 2011–2021:
 
 A reproducible 16 script workflow analysing ethnic group and country of birth across the 2011 and 2021 Censuses of England and Wales
 
+*Note:** This repository does not include data because of their large file sizes. They must be downloaded separately before running the analysis.
+
 The pipeline covers census harmonisation, separation indices, size-conditional inference,
 Shapley decomposition, local spatial clustering, and neighbourhood classification,
 distinguishing recent from longer established minority settlement.
@@ -46,7 +48,7 @@ The following Census tables should be downloaded from [Nomis](https://www.nomisw
 * **TS021** – Ethnic group, LSOA 2021
   `TS021_lsoa_2021.csv`
 
-For each table, select the appropriate geography level and download the data as CSV. For the 2021 tables, the Nomis Census 2021 bulk download service can also be used.
+For each table, select the appropriate geography level(LSOA), every group and subgroup and download the data as CSV. For the 2021 tables, the Nomis Census 2021 bulk download service can also be used.
 
 ### Census data from the ONS Custom Dataset Tool
 
@@ -58,7 +60,7 @@ The following datasets must be downloaded from the [ONS Census 2021 custom datas
 * **RM010** – Country of birth by ethnic group, LSOA 2021
   `RM010_lsoa_2021.csv`
 
-Select **Lower layer Super Output Areas** and **England and Wales** when creating the datasets.
+Select **Lower layer Super Output Areas** , select every group, and **England and Wales** when creating the datasets.
 
 ### Geography and boundary files
 
@@ -79,11 +81,12 @@ The required geography files are available from the [ONS Open Geography Portal](
 * LSOA 2021 boundaries (generalised and clipped)
   `LSOA_2021_BGC.gpkg`
 
-Search for the corresponding dataset title on the ONS Open Geography Portal and download the required CSV or GeoPackage format.
+Search for the corresponding dataset title on the ONS Open Geography Portal and download the required CSV and GeoPackage format for LSOA 2021.
 
 ### Required files
 
 After downloading the data, the `data/raw/` folder should contain:
+(If not rename accordingly)
 
 ```text
 QS203EW_lsoa_2011.csv
@@ -100,7 +103,7 @@ lookup_lad22_region22.csv
 LSOA_2021_BGC.gpkg
 ```
 
-**Note:** These files are not included in the GitHub repository because of their large file sizes. They must be downloaded separately before running the analysis.
+
 
 Script `01_data_import.r` checks that the required files are present and that the relevant area counts match the published totals. The script will stop with an informative error if a required file is missing or a validation check fails.
 
