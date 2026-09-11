@@ -19,10 +19,6 @@ The classification is independently validated against year of arrival, which is 
 
 ## Data Download Instructions 
 
-Unfortunetly due to size data.csv could not be uploaded to this repository. Intrusctions for download are below.
-
-The data used in this project are publicly available from the **Office for National Statistics (ONS)** and **Nomis** and are released under the **Open Government Licence v3.0**.
-
 Due to the size of some of the datasets, the raw data files are **not included in this GitHub repository**. To reproduce the analysis, download the required files from the sources listed below and place them in:
 
 ```text
@@ -110,7 +106,8 @@ Script `01_data_import.r` checks that the required files are present and that th
 
 ### Using an existing data folder
 
-If the required files are already available on your computer, you do not need to move or duplicate them. The `raw_path()` function in `00_environment_setup.r` can be edited to point to the existing `data/raw/` folder. No other scripts need to be changed.
+If the required files are already available on your computer, you do not need to move or duplicate them. The `raw_path()` function in `00_environment_setup.r` can be edited to point to the existing `data/raw/` folder. No other scripts need to be changed. 
 
-This version keeps the important reproducibility information while making it clear to the marker **why the data aren't on GitHub and exactly what they need to download**.
+Files should be named exactly the same. 
+
 
