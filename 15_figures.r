@@ -1,6 +1,5 @@
 # 15 Figures
 
-
 source("00_environment_setup.r")
 
 crosswalk <- read_derived("03_crosswalk")
@@ -21,6 +20,9 @@ change_class <- read_derived("14_change_class")
 zones_sf <- read_geometry("04_zones")
 districts_sf <- read_geometry("04_districts")
 outline_sf <- read_geometry("04_outline")
+
+concentration_classes <- c("Recent migrant concentration", "Settled minority concentration")
+recent_arrival_label <- paste0("Foreign born arriving ", recent_arrival_from, " to 2021")
 
 # Map layout
 # the national map fills the centre and the four conurbations the corners, with one shared key beneath
@@ -111,11 +113,9 @@ legend_key <- function(values, ncol = 2) {
     coord_cartesian(clip = "off") +
     theme_void()
 }
+# Figure 3, dissimilarity 2011 against 2021
 
-
-# Figure 2, dissimilarity 2011 against 2021
-
-f2 <- indices %>%
+f3 <- indices %>%
   filter(variable != "Accession cohort") %>%
   select(variable, group, year, D) %>%
   pivot_wider(names_from = year, values_from = D, names_prefix = "D_") %>%
@@ -131,11 +131,11 @@ f2 <- indices %>%
   coord_equal() +
   labs(title = "Dissimilarity by group, 2011 and 2021", x = "Dissimilarity, 2011", y = "Dissimilarity, 2021")
 
-save_figure(f2, "fig_2_dissimilarity_change", height = 150, width = 150)
+save_figure(f3, "fig_3_dissimilarity_change", height = 180, width = 150)
 
-# Figure 3, observed against size conditional expected dissimilarity
+# Figure 4, observed against size conditional expected dissimilarity
 
-f3 <- indices_null %>%
+f4 <- indices_null %>%
   filter(year == 2021, variable != "Accession cohort") %>%
   mutate(group = fct_reorder(as.character(group), D)) %>%
   ggplot(aes(y = group)) +
@@ -149,11 +149,11 @@ f3 <- indices_null %>%
   labs(title = "Observed and expected dissimilarity, 2021", x = "Dissimilarity, 2021", y = NULL) +
   theme(panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 6.5))
 
-save_figure(f3, "fig_3_dissimilarity_null", height = 160, width = 145)
+save_figure(f4, "fig_4_dissimilarity_null", height = 160, width = 145)
 
-# Figure 4, scale decomposition and Shapley components
+# Figure 5, scale decomposition and Shapley components
 
-f4_scale <- scale_decomposition %>%
+f5_scale <- scale_decomposition %>%
   filter(target_group == "All groups") %>%
   mutate(year = factor(year)) %>%
   ggplot(aes(year, share, fill = level)) +
@@ -167,7 +167,7 @@ f4_scale <- scale_decomposition %>%
 shapley_labels <- c(group_marginal = "Population growth", unit_marginal = "Zone composition",
                     structural = "Spatial structure", additions = "Group additions", removals = "Group removals")
 
-f4_shapley <- change_decomposition %>%
+f5_shapley <- change_decomposition %>%
   filter(!stat %in% c("M1", "M2", "diff")) %>%
   mutate(stat = recode(stat, !!!shapley_labels),
          stat = fct_reorder(stat, est),
@@ -182,16 +182,16 @@ f4_shapley <- change_decomposition %>%
   labs(x = "Contribution to the change in M", y = NULL) +
   theme(panel.grid.major.y = element_blank())
 
-f4 <- (f4_scale | f4_shapley) +
+f5 <- (f5_scale | f5_shapley) +
   plot_annotation(title = "Spatial scale of separation and components of change",
                   tag_levels = "a", tag_prefix = "(", tag_suffix = ")", theme = theme_figure())
 
-save_figure(f4, "fig_4_scale_and_change", height = 170, width = 195)
+save_figure(f5, "fig_5_scale_and_change", height = 170, width = 195)
 
-# Figure 5, pairing sensitivity
+# Figure 6, pairing sensitivity
 # each point carries its population ratio, the quantity that explains why concordance moves
 
-f5 <- pairing_sensitivity %>%
+f6 <- pairing_sensitivity %>%
   select(pair, scheme, concordance_percent, ratio) %>%
   pivot_wider(names_from = scheme, values_from = c(concordance_percent, ratio)) %>%
   transmute(pair,
@@ -213,29 +213,7 @@ f5 <- pairing_sensitivity %>%
        x = "Clustered zones identified by both surfaces (%)", y = NULL) +
   theme(panel.grid.major.y = element_blank())
 
-save_figure(f5, "fig_5_pairing_sensitivity", height = 125, width = 165)
-
-# Figure 6, minority ethnic share against recent arrival share
-
-concentration_classes <- c("Recent migrant concentration", "Settled minority concentration")
-recent_arrival_label <- paste0("Foreign born arriving ", recent_arrival_from, " to 2021")
-
-f6 <- classified %>%
-  select(zone, class, me_share_2021) %>%
-  inner_join(arrival_zone, by = "zone") %>%
-  drop_na(arrival, me_share_2021) %>%
-  mutate(highlight = class %in% concentration_classes) %>%
-  arrange(highlight) %>%
-  ggplot(aes(me_share_2021, arrival)) +
-  geom_point(data = ~ filter(.x, !highlight), colour = border, size = 0.35, alpha = 0.25) +
-  geom_point(data = ~ filter(.x, highlight), aes(colour = class), size = 0.7, alpha = 0.7) +
-  scale_colour_manual(values = pal_class[concentration_classes]) +
-  scale_x_continuous(labels = percent_format(accuracy = 1)) +
-  scale_y_continuous(labels = percent_format(accuracy = 1)) +
-  labs(title = "Minority ethnic share against recent arrival share, 2021",
-       x = "Minority ethnic share of neighbourhood population", y = recent_arrival_label)
-
-save_figure(f6, "fig_6_share_against_arrival", height = 150, width = 165)
+save_figure(f6, "fig_6_pairing_sensitivity", height = 125, width = 165)
 
 # Figure 7, settlement classes
 
@@ -244,7 +222,7 @@ f7_zones <- zones_sf %>%
   mutate(class = factor(class, levels = names(pal_class)))
 
 f7 <- national_with_insets(f7_zones, "class", pal_class, key = legend_key(pal_class)) +
-  plot_annotation(title = "Geographical distribution of the settlement classes, 2021", theme = theme_figure())
+  plot_annotation(title = "Geographical distribution of the settlement classes (2021)", theme = theme_figure())
 
 save_figure(f7, "fig_7_settlement_classes", height = 200, width = 295)
 
@@ -275,45 +253,64 @@ f8 <- ggplot(profile_long, aes(indicator, class, fill = z)) +
 
 save_figure(f8, "fig_8_class_profiles", height = 140, width = 190)
 
-# Figure 9, recent arrival share by settlement class
-# up to 400 zones per class are drawn so the largest class does not hide the others; the boxes use every zone
+# Figure 9, minority ethnic share against recent arrival share
+
+f9 <- classified %>%
+  select(zone, class, me_share_2021) %>%
+  inner_join(arrival_zone, by = "zone") %>%
+  drop_na(arrival, me_share_2021) %>%
+  mutate(highlight = class %in% concentration_classes) %>%
+  arrange(highlight) %>%
+  ggplot(aes(me_share_2021, arrival)) +
+  geom_point(data = ~ filter(.x, !highlight), colour = border, size = 0.35, alpha = 0.25) +
+  geom_point(data = ~ filter(.x, highlight), aes(colour = class), size = 0.7, alpha = 0.7) +
+  scale_colour_manual(values = pal_class[concentration_classes]) +
+  scale_x_continuous(labels = percent_format(accuracy = 1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "Minority ethnic share against recent arrival share (2021)",
+       x = "Minority ethnic share of neighbourhood population", y = recent_arrival_label)
+
+save_figure(f9, "fig_9_share_against_arrival", height = 190, width = 175)
+
+
+# Figure 10, recent arrival share by settlement class
 
 set.seed(project_seed)
 
-f9_data <- arrival_zone %>%
+f10_data <- arrival_zone %>%
   inner_join(select(classified, zone, class), by = "zone") %>%
   drop_na(arrival) %>%
   mutate(class = fct_reorder(class, arrival, .fun = median))
 
-f9 <- ggplot(f9_data, aes(arrival, class)) +
-  geom_jitter(data = slice_sample(f9_data, n = 400, by = class), aes(colour = class), height = 0.27, size = 0.65, alpha = 0.30) +
+f10 <- ggplot(f10_data, aes(arrival, class)) +
+  geom_jitter(data = slice_sample(f10_data, n = 400, by = class), aes(colour = class), height = 0.27, size = 0.65, alpha = 0.30) +
   geom_boxplot(fill = NA, colour = ink, linewidth = 0.35, width = 0.5, outlier.shape = NA) +
   stat_summary(fun = median, geom = "point", colour = ink, size = 2.1) +
   scale_colour_manual(values = pal_class, guide = "none") +
   scale_x_continuous(labels = percent_format(accuracy = 1)) +
-  labs(title = "Recent arrival share by settlement class, 2021", x = recent_arrival_label, y = NULL) +
+  labs(title = "Recent arrival share by settlement class (2021)", x = recent_arrival_label, y = NULL) +
   theme(panel.grid.major.y = element_blank())
 
-save_figure(f9, "fig_9_arrival_by_class", height = 150, width = 175)
+save_figure(f10, "fig_10_arrival_by_class", height = 150, width = 175)
 
-# Figure 11, national map of neighbourhood change clusters
-
-change_labels <- c("1" = "White British down, ethnic diversity up",
-                   "2" = "Suburban ring: largest foreign born increase",
-                   "3" = "Inner core: compositional turnover")
+# Figure 11, change clusters in the four conurbations
 
 f11_zones <- zones_sf %>%
-  inner_join(transmute(change_class, zone, cluster = as.character(cluster)), by = "zone") %>%
-  left_join(tibble(cluster = names(change_labels), label = unname(change_labels)), by = "cluster")
+  inner_join(select(change_class, zone, signature), by = "zone") %>%
+  mutate(signature = signature %>% str_replace_all("d_entropy", "ethnic diversity") %>% str_replace_all("d_fb", "foreign born share"))
 
-pal_clusters <- c("1" = unname(pal_categorical[2]), "2" = unname(pal_categorical[1]), "3" = unname(pal_categorical[3]))
+pal_change <- setNames(unname(pal_categorical[c(6, 2, 1)]), levels(factor(f11_zones$signature)))
 
-f11_key <- legend_key(setNames(pal_clusters, unname(change_labels)), ncol = 1)
+f11 <- wrap_plots(A = as_panel(map_conurbation(f11_zones, "signature", pal_change, "London")),
+                  B = as_panel(map_conurbation(f11_zones, "signature", pal_change, "West Midlands")),
+                  C = as_panel(map_conurbation(f11_zones, "signature", pal_change, "Greater Manchester")),
+                  D = as_panel(map_conurbation(f11_zones, "signature", pal_change, "West Yorkshire")),
+                  L = legend_key(pal_change),
+                  design = "AB\nCD\nLL",
+                  heights = c(1, 1, 0.35)) +
+  plot_annotation(title = "Neighbourhood change clusters, 2011 to 2021", theme = theme_figure())
 
-f11 <- national_with_insets(f11_zones, "cluster", pal_clusters, key = f11_key) +
-  plot_annotation(title = "National distribution of neighbourhood change clusters, 2011 to 2021", theme = theme_figure())
-
-save_figure(f11, "fig_11_change_clusters_national", height = 200, width = 295)
+save_figure(f11, "fig_11_change_clusters", height = 210, width = 200)
 
 # Figure A1, category crosswalk
 # categories identical in both censuses and in the analysis group are omitted
@@ -380,36 +377,10 @@ a3 <- detailed_indices_2011 %>%
 
 save_figure(a3, "fig_a3_detailed_birthplace", height = 205, width = 160)
 
-# Figure A4, dissimilarity within local authorities, 2021
-# authorities are ranked by minority ethnic population, everyone outside the White British group
 
-district_eth <- filter(district_indices_2021, variable == "Ethnic group")
+# Figure A4, arrival cohort and generation
 
-top_districts <- district_eth %>%
-  filter(group != "White British") %>%
-  group_by(district) %>%
-  summarise(minority_population = sum(group_total), .groups = "drop") %>%
-  slice_max(minority_population, n = 30) %>%
-  pull(district)
-
-a4 <- district_eth %>%
-  filter(district %in% top_districts) %>%
-  mutate(district = fct_reorder(district, D, .fun = median), group = fct_reorder(as.character(group), D, .fun = median)) %>%
-  ggplot(aes(group, district, fill = D)) +
-  geom_tile(colour = paper, linewidth = 0.6) +
-  scale_fill_viridis_c(option = "rocket", direction = -1, begin = 0.08, end = 0.95, name = "Dissimilarity",
-                       limits = c(0, 0.7), oob = squish,
-                       guide = guide_colourbar(direction = "horizontal", title.position = "top",
-                                               barwidth = unit(80, "pt"), barheight = unit(6, "pt"))) +
-  labs(title = "Dissimilarity within the 30 authorities with the largest minority ethnic populations, 2021", x = NULL, y = NULL) +
-  theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1, size = 6.5),
-        axis.text.y = element_text(size = 6.5), legend.justification = "left", legend.title = element_text(size = 7, colour = rule))
-
-save_figure(a4, "fig_a4_district_matrix", height = 250, width = 220)
-
-# Figure A5, arrival cohort and generation
-
-a5_cohort <- indices_arrival %>%
+a4_cohort <- indices_arrival %>%
   mutate(group = fct_rev(group)) %>%
   ggplot(aes(D, group)) +
   geom_segment(aes(x = 0, xend = D, yend = group), colour = border, linewidth = 0.4) +
@@ -419,7 +390,7 @@ a5_cohort <- indices_arrival %>%
   labs(x = "Dissimilarity, 2021", y = NULL) +
   theme(panel.grid.major.y = element_blank())
 
-a5_generation <- generation_indices %>%
+a4_generation <- generation_indices %>%
   filter(year == 2021) %>%
   select(group, generation, D) %>%
   pivot_wider(names_from = generation, values_from = D) %>%
@@ -433,30 +404,38 @@ a5_generation <- generation_indices %>%
   labs(x = "Dissimilarity, 2021, harmonised MSOA", y = NULL) +
   theme(panel.grid.major.y = element_blank(), axis.text.y = element_text(size = 6.5))
 
-a5 <- (a5_cohort / a5_generation) +
+a4 <- (a4_cohort / a4_generation) +
   plot_layout(heights = c(1, 2.4)) +
   plot_annotation(title = "Dissimilarity by arrival cohort and by generation, 2021",
                   tag_levels = "a", tag_prefix = "(", tag_suffix = ")", theme = theme_figure())
 
-save_figure(a5, "fig_a5_arrival_generation", height = 200, width = 165)
+save_figure(a4, "fig_a4_arrival_generation", height = 200, width = 165)
 
-# Figure A6, change clusters in the four conurbations
+# Figure A5, dissimilarity within local authorities 2021
 
-a6_zones <- zones_sf %>%
-  inner_join(select(change_class, zone, signature), by = "zone") %>%
-  mutate(signature = signature %>% str_replace_all("d_entropy", "ethnic diversity") %>% str_replace_all("d_fb", "foreign born share"))
+district_eth <- filter(district_indices_2021, variable == "Ethnic group")
 
-pal_change <- setNames(unname(pal_categorical[c(6, 2, 1)]), levels(factor(a6_zones$signature)))
+top_districts <- district_eth %>%
+  filter(group != "White British") %>%
+  group_by(district) %>%
+  summarise(minority_population = sum(group_total), .groups = "drop") %>%
+  slice_max(minority_population, n = 30) %>%
+  pull(district)
 
-a6 <- wrap_plots(A = as_panel(map_conurbation(a6_zones, "signature", pal_change, "London")),
-                 B = as_panel(map_conurbation(a6_zones, "signature", pal_change, "West Midlands")),
-                 C = as_panel(map_conurbation(a6_zones, "signature", pal_change, "Greater Manchester")),
-                 D = as_panel(map_conurbation(a6_zones, "signature", pal_change, "West Yorkshire")),
-                 L = legend_key(pal_change),
-                 design = "AB\nCD\nLL",
-                 heights = c(1, 1, 0.35)) +
-  plot_annotation(title = "Neighbourhood change clusters, 2011 to 2021", theme = theme_figure())
+a5 <- district_eth %>%
+  filter(district %in% top_districts) %>%
+  mutate(district = fct_reorder(district, D, .fun = median), group = fct_reorder(as.character(group), D, .fun = median)) %>%
+  ggplot(aes(group, district, fill = D)) +
+  geom_tile(colour = paper, linewidth = 0.6) +
+  scale_fill_viridis_c(option = "rocket", direction = -1, begin = 0.08, end = 0.95, name = "Dissimilarity",
+                       limits = c(0, 0.7), oob = squish,
+                       guide = guide_colourbar(direction = "horizontal", title.position = "top",
+                                               barwidth = unit(80, "pt"), barheight = unit(6, "pt"))) +
+  labs(title = "Dissimilarity within the 30 authorities with the largest minority ethnic populations, 2021", x = NULL, y = NULL) +
+  theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1, size = 6.5),
+        axis.text.y = element_text(size = 6.5), legend.justification = "left", legend.title = element_text(size = 7, colour = rule))
 
-save_figure(a6, "fig_a6_change_clusters", height = 210, width = 200)
+save_figure(a5, "fig_a5_district_matrix", height = 250, width = 220)
 
 report("Script 15 complete")
+

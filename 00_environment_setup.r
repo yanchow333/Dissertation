@@ -1,7 +1,13 @@
 # 0.Environment setup
 
 # This file contains the shared packages, file paths, contstants, figure styles and functions
-# Every script sources this file first or from run all
+
+## run renv::restore() and state 'y' to intsall all packages missing, when complete remove line of code
+
+# Runs scripts 00 to 16 in order
+# Or Run all scripts 00 to 16 from this script run_all.r
+
+#renv::restore()
 
 packages <- c("here", "tidyverse", "janitor", "conflicted", "scales", "sf", "spdep", "tmap", "igraph",
               "segregation", "cluster", "mclust", "future", "furrr", "patchwork", "ggalluvial")
