@@ -1,5 +1,9 @@
-# Runs scripts 00 to 16 in order, each in a fresh R session, so a script can only use what earlier scripts saved
-# Run from the project root: Rscript run_all.r
+## run renv::restore() and state 'y' to intsall all packages missing, when complete remove line of code
+
+# Runs scripts 00 to 16 in order
+# Or Run all scripts 00 to 16 from this script run_all.r
+
+#renv::restore()
 
 scripts <- c("00_environment_setup.r", "01_data_import.r", "02_classification_hierarchy.r", "03_category_harmonisation.r",
              "04_geography_harmonisation.r", "05_segregation_indices.r", "06_null_model.r", "07_spatial_scale.r",
