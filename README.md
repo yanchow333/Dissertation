@@ -3,7 +3,7 @@ Ethnic Group, Country of Birth and Neighbourhood Settlement, 2011–2021:
 
 A reproducible 16 script workflow analysing ethnic group and country of birth across the 2011 and 2021 Censuses of England and Wales
 
-*Note:** This repository does not include data because of their large file sizes. They must be downloaded separately before running the analysis.
+*Note:*** This repository does not include data because of their large file sizes. They must be downloaded separately before running the analysis.**
 
 The pipeline covers census harmonisation, separation indices, size-conditional inference,
 Shapley decomposition, local spatial clustering, and neighbourhood classification,
@@ -17,17 +17,17 @@ The classification is independently validated against year of arrival, which is 
 2. Run `renv::restore()` to install the package versions specified in `renv.lock` (R 4.5.1).
 3. Run `Rscript run_all.r`, or execute scripts `00`–`16` in order. Each script sources `00_environemnt_sourve` and reads only outputs saved by earlier scripts.
 4. (So scripts 1-16 are sequential)
-5. A full run typically takes 30 minutes. Most of the runtime is concentrated in scripts `05`, `06`, and `09`.
+5. A full run typically takes 30 minutes. The longest runtime is scripts `05`, `06`, and `09`.
 
 ## Data Download Instructions 
 
 Due to the size of some of the datasets, the raw data files are **not included in this GitHub repository**. To reproduce the analysis, download the required files from the sources listed below and place them in:
 
-```text
-data/raw/
-```
 
-The filenames must match those specified below exactly.
+#data/raw/
+
+
+**The filenames must match those specified below exactly.**
 
 ### Census data from Nomis
 
